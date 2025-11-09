@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generador de Códigos QR</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Roboto", Arial, sans-serif;
+        --bg: #f4f5f8;
+        --surface: #ffffff;
+        --primary: #1f4b99;
+        --primary-contrast: #ffffff;
+        --text: #1f2532;
+        --muted: #6b7280;
+        --border: #d0d3da;
+        --shadow: 0 12px 24px rgba(20, 35, 70, 0.08);
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        z-index: 100;
+      }
+
+      header p {
+        margin: 0;
+        font-weight: 500;
+      }
+
+      header .brand {
+        display: flex;
+        align-items: center;
+        gap: 29px;
+      }
+
+      header a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      header a:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(31, 75, 153, 0.18);
+      }
+
+      header svg {
+        width: 22px;
+        height: 22px;
+        fill: var(--primary-contrast);
+      }
+
+      .layout {
+        padding-top: 96px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        max-width: 960px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        overflow: hidden;
+      }
+
+      .card__form,
+      .card__preview {
+        padding: 32px;
+      }
+
+      .card__header {
+        margin-bottom: 24px;
+      }
+
+      .card__header h1 {
+        font-size: 1.75rem;
+        margin: 0 0 8px;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .card__header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      select,
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font: inherit;
+        color: inherit;
+        background: #fff;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(31, 75, 153, 0.1);
+      }
+
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .field {
+        margin-bottom: 20px;
+      }
+
+      .field--inline {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+      }
+
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 14px 28px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: var(--primary-contrast);
+        box-shadow: 0 10px 20px rgba(31, 75, 153, 0.15);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .btn-primary:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px rgba(31, 75, 153, 0.2);
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .card__preview {
+        background: linear-gradient(135deg, rgba(31, 75, 153, 0.08), rgba(31, 75, 153, 0.02));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border-left: 1px solid rgba(31, 75, 153, 0.08);
+      }
+
+      .preview-box {
+        background: #fff;
+        padding: 24px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(31, 75, 153, 0.12);
+        min-width: 240px;
+        min-height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .preview-box canvas,
+      .preview-box img {
+        width: 100%;
+        height: 100%;
+        max-width: 240px;
+        max-height: 240px;
+        object-fit: contain;
+      }
+
+      .placeholder {
+        color: var(--muted);
+      }
+
+      @media (max-width: 720px) {
+        .card {
+          grid-template-columns: 1fr;
+        }
+
+        .card__preview {
+          border-left: none;
+          border-top: 1px solid rgba(31, 75, 153, 0.08);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <p>BIENEVENIDO este es un proyecto desarrollado por @RubenRubenAlejandrox</p>
+      </div>
+      <a href="https://github.com/RubenAlejandrox" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 .5C5.73.5.5 5.73.5 12.02c0 5.1 3.29 9.42 7.86 10.95.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.87-1.54-3.87-1.54-.53-1.35-1.3-1.72-1.3-1.72-1.06-.73.08-.72.08-.72 1.18.08 1.8 1.21 1.8 1.21 1.04 1.79 2.72 1.27 3.38.97.11-.76.41-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.68 0-1.26.45-2.3 1.2-3.11-.12-.29-.52-1.45.11-3.03 0 0 .98-.31 3.22 1.19.93-.26 1.93-.39 2.92-.4.99 0 1.99.14 2.92.4 2.24-1.5 3.22-1.19 3.22-1.19.63 1.58.23 2.74.11 3.03.75.81 1.2 1.85 1.2 3.11 0 4.41-2.71 5.38-5.29 5.66.42.36.8 1.09.8 2.2 0 1.59-.02 2.88-.02 3.27 0 .31.21.68.8.56A10.53 10.53 0 0 0 23.55 12C23.55 5.73 18.32.5 12 .5Z"
+          />
+        </svg>
+      </a>
+    </header>
+    <div class="layout">
+      <main class="card">
+      <section class="card__form">
+        <div class="card__header">
+          <h1>Generador de Códigos QR</h1>
+          <p>Configura tu contenido, genera el QR y descárgalo en formato PNG.</p>
+        </div>
+        <form id="qrForm">
+          <div class="field">
+            <label for="qrType">Tipo de contenido</label>
+            <select id="qrType" name="qrType" required>
+              <option value="text">Texto libre</option>
+              <option value="url">URL</option>
+              <option value="wifi">Wi-Fi</option>
+            </select>
+          </div>
+
+          <div id="textFields">
+            <div class="field" id="genericField">
+              <label for="qrText">Contenido</label>
+              <textarea
+                id="qrText"
+                name="qrText"
+                placeholder="Escribe el texto o URL que deseas convertir en QR"
+                required
+              ></textarea>
+            </div>
+          </div>
+
+          <div id="wifiFields" hidden>
+            <div class="field">
+              <label for="wifiSsid">Nombre de la red (SSID)</label>
+              <input
+                type="text"
+                id="wifiSsid"
+                name="wifiSsid"
+                placeholder="MiWifi"
+              />
+            </div>
+            <div class="field field--inline">
+              <div>
+                <label for="wifiPassword">Contraseña</label>
+                <input
+                  type="text"
+                  id="wifiPassword"
+                  name="wifiPassword"
+                  placeholder="Contraseña"
+                />
+              </div>
+              <div>
+                <label for="wifiSecurity">Seguridad</label>
+                <select id="wifiSecurity" name="wifiSecurity">
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">Sin contraseña</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>
+                <input type="checkbox" id="wifiHidden" />
+                Red oculta
+              </label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" type="submit">Generar código QR</button>
+            <button class="btn-primary" type="button" id="downloadBtn" disabled>
+              Descargar PNG
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card__preview">
+        <div class="preview-box" id="qrPreview">
+          <span class="placeholder">Tu QR aparecerá aquí</span>
+        </div>
+      </section>
+    </main>
+    </div>
+
+    <script>
+      const form = document.getElementById("qrForm");
+      const typeSelect = document.getElementById("qrType");
+      const textFields = document.getElementById("textFields");
+      const wifiFields = document.getElementById("wifiFields");
+      const preview = document.getElementById("qrPreview");
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      let qrInstance = null;
+
+      function ensureQRCodeInstance() {
+        if (!qrInstance) {
+          preview.innerHTML = "";
+          qrInstance = new QRCode(preview, {
+            text: "",
+            width: 240,
+            height: 240,
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+        }
+      }
+
+      function resetPreview() {
+        preview.innerHTML = '<span class="placeholder">Tu QR aparecerá aquí</span>';
+        qrInstance = null;
+        downloadBtn.disabled = true;
+      }
+
+      function toggleFields() {
+        const type = typeSelect.value;
+        if (type === "wifi") {
+          wifiFields.hidden = false;
+          wifiFields.querySelectorAll("input, select").forEach((el) => (el.required = true));
+          textFields.hidden = true;
+          textFields.querySelectorAll("textarea, input").forEach((el) => (el.required = false));
+          resetPreview();
+        } else {
+          wifiFields.hidden = true;
+          wifiFields.querySelectorAll("input, select").forEach((el) => (el.required = false));
+          textFields.hidden = false;
+          textFields.querySelectorAll("textarea, input").forEach((el) => (el.required = true));
+          resetPreview();
+        }
+      }
+
+      function buildWifiString() {
+        const ssid = document.getElementById("wifiSsid").value.trim();
+        const password = document.getElementById("wifiPassword").value.trim();
+        const security = document.getElementById("wifiSecurity").value;
+        const hidden = document.getElementById("wifiHidden").checked;
+
+        if (!ssid) {
+          throw new Error("Debes indicar el nombre de la red Wi-Fi.");
+        }
+
+        if (security !== "nopass" && !password) {
+          throw new Error("Debes indicar la contraseña de la red Wi-Fi.");
+        }
+
+        return `WIFI:T:${security};S:${ssid};P:${security === "nopass" ? "" : password};H:${hidden};`;
+      }
+
+      function getCanvasDataUrl() {
+        const canvas = preview.querySelector("canvas");
+        if (canvas) {
+          return canvas.toDataURL("image/png");
+        }
+        const img = preview.querySelector("img");
+        if (img) {
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = img.naturalWidth;
+          tempCanvas.height = img.naturalHeight;
+          const ctx = tempCanvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          return tempCanvas.toDataURL("image/png");
+        }
+        throw new Error("No se encontró el código QR para descargar.");
+      }
+
+      typeSelect.addEventListener("change", toggleFields);
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const type = typeSelect.value;
+        let content = "";
+
+        try {
+          if (type === "wifi") {
+            content = buildWifiString();
+          } else {
+            const textValue = document.getElementById("qrText").value.trim();
+            if (!textValue) {
+              throw new Error("Debes introducir contenido para generar el QR.");
+            }
+            content = textValue;
+          }
+        } catch (error) {
+          alert(error.message);
+          return;
+        }
+
+        ensureQRCodeInstance();
+        qrInstance.clear();
+        qrInstance.makeCode(content);
+        downloadBtn.disabled = false;
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        try {
+          const dataUrl = getCanvasDataUrl();
+          const link = document.createElement("a");
+          link.href = dataUrl;
+          link.download = `codigo-qr-${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+    </script>
+  </body>
+</html>
+
